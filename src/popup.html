@@ -52,8 +52,16 @@
           </div>
         </div>
         <div class="home-actions">
-          <button id="openShare"><span>↗</span>今日战报</button>
+          <button id="openShare"><span>↗</span>今日前进</button>
           <button id="touchWidget"><span>◉</span>网页仓鼠</button>
+        </div>
+        <div id="shareNudge" class="share-nudge" hidden>
+          <div>
+            <b>今天收工了</b>
+            <span>把一天的进账收成一张今日前进</span>
+          </div>
+          <button type="button" id="shareNudgeGo">去生成</button>
+          <button type="button" id="shareNudgeDismiss" class="nudge-close" aria-label="关闭提示">×</button>
         </div>
         <blockquote id="quote">时间明码标价，向上有迹可循</blockquote>
       </div>
@@ -145,7 +153,7 @@
           </label>
           <div class="permission-box">
             <b id="permissionTitle">尚未授权网页显示</b>
-            <p id="permissionText">弹窗仍可完整使用。只有你主动开启后，仓鼠才会出现在网页角落。</p>
+            <p id="permissionText">网页模式默认开启。授权一次后，仓鼠会出现在网页角落；插件不读取网页内容。</p>
             <button id="permissionAction">启用网页仓鼠</button>
             <button id="pauseHost" class="ghost">暂停当前网站</button>
           </div>
@@ -160,20 +168,29 @@
     <section id="viewShare" class="view">
       <header class="subbar">
         <button data-back="Home">‹ 返回</button>
-        <b>今日钱进战报</b>
+        <b>今日前进</b>
         <span></span>
       </header>
       <div class="share-wrap">
-        <canvas id="shareCanvas" width="1080" height="1440" aria-label="今日钱进战报预览"></canvas>
+        <p class="share-lead">下班点一下，今天的进账变成一张体面卡片。默认不露金额，下载 PNG 或复制文案即可发出去。</p>
+        <div class="share-templates" id="shareTemplates" role="tablist" aria-label="卡片风格"></div>
+        <div class="share-preview">
+          <canvas id="shareCanvas" width="1080" height="1440" aria-label="今日前进预览"></canvas>
+        </div>
         <label class="share-toggle">
-          <input id="shareAmount" type="checkbox">主动在战报中展示今日金额
+          <input id="shareAmount" type="checkbox">在卡片里展示今日已到账（默认关闭）
         </label>
         <div class="share-actions">
           <button id="downloadShare" class="primary">下载 PNG</button>
           <button id="copyShare">复制文案</button>
         </div>
-        <textarea id="shareFallback" readonly aria-label="可手动复制的战报文案"></textarea>
+        <textarea id="shareFallback" readonly aria-label="可手动复制的分享文案"></textarea>
         <div id="shareStatus" class="status" role="status"></div>
+        <section class="share-archive">
+          <h2>本机战报夹</h2>
+          <p>分享过的卡片只存在这台浏览器，可回看，不会上传。</p>
+          <div id="shareArchiveList" class="share-archive-list"></div>
+        </section>
       </div>
     </section>
     <section id="onboarding" class="onboarding" hidden>
@@ -212,10 +229,10 @@
       <article class="onboard-step" data-step="2">
         <span class="step-tag">3 / 3</span>
         <div class="permission-illustration">◉ <span>仅显示仓鼠</span></div>
-        <h1>要让仓鼠陪你<br>出现在网页角落吗？</h1>
-        <p>这是可选功能。开启时 Chrome 会询问网站访问权限；插件不会读取、记录或上传网页内容。</p>
-        <button id="grantOnboarding" class="primary">开启网页仓鼠</button>
-        <button id="skipOnboarding" class="secondary">暂时只用弹窗</button>
+        <h1>仓鼠会陪你<br>出现在网页角落</h1>
+        <p>网页模式默认打开。完成时 Chrome 只会询问一次显示权限；插件不读取、记录或上传网页内容。</p>
+        <button id="grantOnboarding" class="primary">完成并开启网页仓鼠</button>
+        <button id="skipOnboarding" class="secondary">先完成设置，稍后再授权</button>
         <button class="back-link" data-onboard-back="1">上一步</button>
       </article>
     </section>
@@ -227,6 +244,7 @@
   <script src="hamster.js"></script>
   <script src="audio.js"></script>
   <script src="payout-motion.js"></script>
+  <script src="share.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

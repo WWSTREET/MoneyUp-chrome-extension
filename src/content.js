@@ -52,7 +52,7 @@
     .od-reel{display:flex;flex-direction:column;will-change:transform}.od-reel b{display:block;height:32px;line-height:32px;font-weight:700}
     .progress{height:6px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;margin:11px 0 5px}.progress i{display:block;height:100%;background:#07c160;border-radius:inherit;transition:width .35s}.sub{display:flex;justify-content:space-between;color:rgba(0,0,0,.55);font-size:10px}
     .expect{margin-top:8px;border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.5;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}.quote{border-top:1px solid rgba(0,0,0,.1);margin-top:9px;padding-top:8px;color:rgba(0,0,0,.55);font-size:11px;line-height:1.55}.delta{display:inline-block;margin-top:3px;color:#059a4c;font-size:10px;font-weight:700}
-    .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.actions button{min-height:36px;border:0;border-radius:8px;padding:8px 5px;background:rgba(0,0,0,.05);color:rgba(0,0,0,.9);font-size:11px;font-weight:500;cursor:pointer}.actions button:hover{background:rgba(0,0,0,.1)}.actions button:focus-visible{outline:2px solid rgba(7,193,96,.45);outline-offset:2px}.actions [data-act=settings]{background:#07c160;color:#fff}.actions [data-act=settings]:hover{background:#059a4c}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.actions button{min-height:36px;border:0;border-radius:8px;padding:8px 5px;background:rgba(0,0,0,.05);color:rgba(0,0,0,.9);font-size:11px;font-weight:500;cursor:pointer}.actions button:hover{background:rgba(0,0,0,.1)}.actions button:focus-visible{outline:2px solid rgba(7,193,96,.45);outline-offset:2px}.actions [data-act=settings]{background:#07c160;color:#fff}.actions [data-act=settings]:hover{background:#059a4c}.actions [data-act=share]{background:#ecfdf5;color:#047857}.actions [data-act=share]:hover{background:#d1fae5}.actions [data-act=pet]{grid-column:1/-1}
     #qj-v2-box.clock{min-width:168px;padding:12px 16px 10px;background:#fff;color:#111;border:1px solid rgba(0,0,0,.12);border-radius:14px;text-align:center;box-shadow:0 12px 28px rgba(0,0,0,.16);cursor:pointer;outline:none;color-scheme:light}
     #qj-v2-box.clock:focus-visible{box-shadow:0 0 0 4px rgba(7,193,96,.28),0 12px 28px rgba(0,0,0,.16)}
     #qj-v2-box.clock strong{display:block;color:#111;font-size:28px;line-height:1.15;letter-spacing:1px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -129,11 +129,12 @@
     box.innerHTML = `<div class="head">${H.svg('coding')}<div><div class="eyebrow">今天截至当前共收入</div><div class="amount" data-r="amount"></div><div class="delta" data-r="delta"></div></div></div>
       <div class="progress"><i data-r="bar"></i></div><div class="sub"><span data-r="pct"></span><span data-r="remainTime"></span></div>
       <div class="expect" data-r="expect"></div><div class="quote" data-r="quote"></div>
-      <div class="actions"><button data-act="settings" aria-label="打开前进 MoneyUp 设置面板">⚙ 设置</button><button data-act="boss">伪装时钟</button><button data-act="pause">本站暂停</button><button data-act="pet">收起</button></div>`;
+      <div class="actions"><button data-act="settings" aria-label="打开前进 MoneyUp 设置面板">⚙ 设置</button><button data-act="share" aria-label="打开今日前进">↗ 今日前进</button><button data-act="boss">伪装时钟</button><button data-act="pause">本站暂停</button><button data-act="pet">收起</button></div>`;
     cardRefs = {}; box.querySelectorAll('[data-r]').forEach((el) => { cardRefs[el.dataset.r] = el; });
     box.querySelector('[data-act=boss]').onclick = (event) => { event.stopPropagation(); setMode('boss'); };
     box.querySelector('[data-act=pet]').onclick = (event) => { event.stopPropagation(); setMode('pet'); };
     box.querySelector('[data-act=settings]').onclick = (event) => { event.stopPropagation(); setMode('settings'); };
+    box.querySelector('[data-act=share]').onclick = (event) => { event.stopPropagation(); setMode('share'); };
     box.querySelector('[data-act=pause]').onclick = async (event) => {
       event.stopPropagation();
       const settings = QJStorage.normalizeSettings(data.settings);
@@ -183,8 +184,18 @@
     applyPosition();
     requestAnimationFrame(keepInView);
   }
+  function renderShare() {
+    cardRefs = null;
+    box.className = 'sheet';
+    box.removeAttribute('tabindex');
+    box.removeAttribute('role');
+    const src = chrome.runtime.getURL('src/popup.html?view=Share&embed=1');
+    box.innerHTML = '<iframe title="今日前进" src="' + src + '" scrolling="yes"></iframe>';
+    applyPosition();
+    requestAnimationFrame(keepInView);
+  }
   function keepInView() {
-    if (!box || (mode !== 'reveal' && mode !== 'settings')) return;
+    if (!box || (mode !== 'reveal' && mode !== 'settings' && mode !== 'share')) return;
     const rect = box.getBoundingClientRect(); let x = rect.left, y = rect.top;
     if (rect.right > innerWidth - 6) x -= rect.right - innerWidth + 6;
     if (rect.bottom > innerHeight - 6) y -= rect.bottom - innerHeight + 6;
@@ -195,6 +206,7 @@
     clearTimeout(hideTimer); mode = next;
     if (next === 'reveal') { renderCard(); if (source !== 'hover') scheduleHide(); }
     else if (next === 'settings') { renderSettings(); }
+    else if (next === 'share') { renderShare(); }
     else if (next === 'boss') { revealBase = state ? state.earned : revealBase; renderClock(); }
     else { revealBase = state ? state.earned : revealBase; renderPet(); }
     schedule();
@@ -414,7 +426,7 @@
   document.addEventListener('pointerdown', () => { if (window.QJAudio) QJAudio.unlock(); }, true);
   window.addEventListener('resize', () => { applyPosition(); keepInView(); });
   window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'QJ_CLOSE_SETTINGS' && mode === 'settings') setMode('reveal', 'keyboard');
+    if (event.data && event.data.type === 'QJ_CLOSE_SETTINGS' && (mode === 'settings' || mode === 'share')) setMode('reveal', 'keyboard');
   });
   chrome.storage.onChanged.addListener((changes) => {
     if (changes.settings) {

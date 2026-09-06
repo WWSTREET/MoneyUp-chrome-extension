@@ -585,12 +585,79 @@ blockquote {
   font-size: var(--text-sm);
   line-height: 1.6;
 }
-.share-wrap { padding: 14px 14px; background: var(--bg); }
+.share-nudge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--primary-light);
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+}
+.share-nudge[hidden] { display: none !important; }
+.share-nudge > div { flex: 1; min-width: 0; }
+.share-nudge b { display: block; font-size: var(--text-sm); color: var(--primary-dark); }
+.share-nudge span { display: block; margin-top: 2px; font-size: 11px; color: rgba(0,0,0,.55); }
+.share-nudge #shareNudgeGo {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.share-nudge .nudge-close {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: rgba(0,0,0,.45);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+#viewHome.view.show, #viewShare.view.show { overflow: auto; }
+.share-wrap { padding: 12px 14px 24px; background: var(--bg); }
+.share-lead { margin: 0 0 10px; color: var(--ink-muted); font-size: var(--text-sm); line-height: 1.55; }
+.share-templates { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.share-templates button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 6px 4px;
+}
+.share-templates button b { display: block; font-size: var(--text-sm); }
+.share-templates button small { display: block; margin-top: 2px; color: var(--ink-muted); font-size: 10px; }
+.share-templates button.on { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+.share-preview { display: flex; justify-content: center; }
 .share-wrap canvas { width: 216px; height: 288px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.12); background: #fff; }
-.share-toggle { display:block; font-size: var(--text-sm); color: var(--ink-muted); margin: 10px 0; }
+.share-toggle { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); color: var(--ink-muted); margin: 10px 0; }
 .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.share-wrap textarea { width: 100%; height: 48px; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--ink-muted); font-size: var(--text-sm); resize: none; }
-.status { height: 18px; color: var(--primary); font-size: var(--text-sm); margin-top: 4px; }
+.share-wrap textarea { width: 100%; height: 64px; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--ink-muted); font-size: var(--text-sm); resize: none; }
+.status { min-height: 18px; color: var(--primary); font-size: var(--text-sm); margin-top: 4px; }
+.share-archive { margin-top: 14px; }
+.share-archive h2 { margin: 0; font-size: var(--text-sm); color: rgba(0,0,0,.55); }
+.share-archive > p { margin: 4px 0 8px; font-size: 11px; color: var(--ink-muted); line-height: 1.5; }
+.share-archive-list { display: flex; flex-direction: column; gap: 6px; max-height: 148px; overflow: auto; }
+.share-archive-list button {
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-card);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.share-archive-list button b { display: block; font-size: var(--text-sm); }
+.share-archive-list button span { display: block; margin-top: 2px; color: var(--ink-muted); font-size: 11px; }
+.share-archive-list .empty { color: var(--ink-muted); font-size: var(--text-sm); padding: 8px 0; }
 
 /* 新手引导 */
 .onboarding { position: absolute; inset:0; z-index:10; min-height:560px; background: var(--bg); padding:14px 16px; }
@@ -726,12 +793,12 @@ html.embed #app {
   flex-direction: column;
 }
 html.embed #viewHome,
-html.embed #viewShare,
 html.embed #onboarding { display: none !important; }
 html.embed .view {
   min-height: 0;
 }
-html.embed #viewSettings.view.show {
+html.embed #viewSettings.view.show,
+html.embed #viewShare.view.show {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -740,7 +807,8 @@ html.embed #viewSettings.view.show {
   overflow: hidden;
 }
 html.embed .subbar { flex: 0 0 52px; }
-html.embed .settings-scroll {
+html.embed .settings-scroll,
+html.embed .share-wrap {
   flex: 1 1 auto;
   height: 0;
   min-height: 0;

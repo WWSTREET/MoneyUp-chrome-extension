@@ -2,7 +2,7 @@
 (function (global) {
   'use strict';
 
-  const DEFAULT_META = Object.freeze({ schemaVersion: 5, onboardingCompleted: false, onboardingStep: 0 });
+  const DEFAULT_META = Object.freeze({ schemaVersion: 6, onboardingCompleted: false, onboardingStep: 0, widgetPrompted: false });
   const DEFAULT_SETTINGS = Object.freeze({
     monthlySalary: null,
     billingDays: 21.75,
@@ -14,8 +14,8 @@
     workdays: [1, 2, 3, 4, 5],
     privacyMode: 'pet',
     soundMode: 'soft',
-    widget: Object.freeze({ enabled: false, autoHideSec: 3, position: null, pausedHosts: [] }),
-    share: Object.freeze({ includeAmount: false })
+    widget: Object.freeze({ enabled: true, autoHideSec: 3, position: null, pausedHosts: [] }),
+    share: Object.freeze({ includeAmount: false, template: 'strive', lastSharePromptKey: '' })
   });
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -75,12 +75,16 @@
       privacyMode: ['pet', 'percent', 'rough', 'exact'].includes(src.privacyMode) ? src.privacyMode : 'pet',
       soundMode: ['mute', 'soft', 'all'].includes(src.soundMode) ? src.soundMode : 'soft',
       widget: {
-        enabled: widget.enabled === true,
+        enabled: widget.enabled !== false,
         autoHideSec: number(widget.autoHideSec, 3, 1, 60),
         position: normalizePosition(widget.position),
         pausedHosts: Array.isArray(widget.pausedHosts) ? [...new Set(widget.pausedHosts.map(String).filter(Boolean))].slice(0, 500) : []
       },
-      share: { includeAmount: share.includeAmount === true }
+      share: {
+        includeAmount: share.includeAmount === true,
+        template: ['strive', 'slack', 'minimal'].includes(share.template) ? share.template : 'strive',
+        lastSharePromptKey: typeof share.lastSharePromptKey === 'string' ? share.lastSharePromptKey : ''
+      }
     };
   }
 
@@ -121,18 +125,22 @@
       const previous = raw.settings && typeof raw.settings === 'object' ? clone(raw.settings) : {};
       if (Number(raw.meta.schemaVersion) < 3 && !previous.currency) previous.currency = { auto: false, baseCode: 'CNY', displayCode: 'CNY' };
       if (Number(raw.meta.schemaVersion) < 5 && !previous.payout) previous.payout = { mode: 'custom', intervalSeconds: Math.round(number(previous.payoutIntervalMinutes, 30, 1, 1440) * 60) };
-      return { meta: { schemaVersion: 5, onboardingCompleted: raw.meta.onboardingCompleted === true, onboardingStep: raw.meta.onboardingCompleted === true ? 0 : onboardingStep(raw.meta.onboardingStep) }, settings: normalizeSettings(previous) };
+      if (Number(raw.meta.schemaVersion) < 6) {
+        previous.widget = previous.widget && typeof previous.widget === 'object' ? previous.widget : {};
+        previous.widget.enabled = true;
+      }
+      return { meta: { schemaVersion: 6, onboardingCompleted: raw.meta.onboardingCompleted === true, onboardingStep: raw.meta.onboardingCompleted === true ? 0 : onboardingStep(raw.meta.onboardingStep), widgetPrompted: raw.meta.widgetPrompted === true }, settings: normalizeSettings(previous) };
     }
     const hasLegacy = ['monthlySalary', 'startHour', 'privacyMode', 'billingDays'].some((key) => raw[key] !== undefined);
     if (!hasLegacy) return freshData();
     const untouched = legacyLooksUntouched(raw);
-    const legacySettings = { monthlySalary: untouched ? null : raw.monthlySalary, billingDays: raw.billingDays, startMinute: number(raw.startHour, 9, 0, 23) * 60 + number(raw.startMinute, 0, 0, 59), endMinute: number(raw.endHour, 18, 0, 23) * 60 + number(raw.endMinute, 0, 0, 59), workdays: raw.workdays, privacyMode: raw.privacyMode, soundMode: raw.soundMode, payout: randomPayout(), widget: { enabled: false, autoHideSec: raw.autoHideSec, position: null, pausedHosts: [] } };
-    return { meta: { schemaVersion: 5, onboardingCompleted: !untouched && Number(raw.monthlySalary) >= 0, onboardingStep: 0 }, settings: normalizeSettings(legacySettings) };
+    const legacySettings = { monthlySalary: untouched ? null : raw.monthlySalary, billingDays: raw.billingDays, startMinute: number(raw.startHour, 9, 0, 23) * 60 + number(raw.startMinute, 0, 0, 59), endMinute: number(raw.endHour, 18, 0, 23) * 60 + number(raw.endMinute, 0, 0, 59), workdays: raw.workdays, privacyMode: raw.privacyMode, soundMode: raw.soundMode, payout: randomPayout(), widget: { enabled: true, autoHideSec: raw.autoHideSec, position: null, pausedHosts: [] } };
+    return { meta: { schemaVersion: 6, onboardingCompleted: !untouched && Number(raw.monthlySalary) >= 0, onboardingStep: 0, widgetPrompted: false }, settings: normalizeSettings(legacySettings) };
   }
   async function load() {
     if (!global.chrome || !chrome.storage || !chrome.storage.local) return freshData();
     const raw = await chrome.storage.local.get(null); const data = migrate(raw); data.settings = applyAutoProfile(data.settings);
-    if (!raw.meta || Number(raw.meta.schemaVersion) < 5) await chrome.storage.local.set(data);
+    if (!raw.meta || Number(raw.meta.schemaVersion) < 6) await chrome.storage.local.set(data);
     return data;
   }
   async function saveData(patch) { if (global.chrome && chrome.storage && chrome.storage.local) await chrome.storage.local.set(patch); }

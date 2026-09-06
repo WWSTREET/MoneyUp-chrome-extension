@@ -5,7 +5,8 @@
   const $ = (id) => document.getElementById(id);
   const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
   const CHEERS = ['摸鱼可以，进账不停', '叮，金币到账，等级 Up', '工位一坐，Money Up', '摸摸头，继续帮你看着进度'];
-  let data = S.freshData(), activeHost = '', shareIncludesAmount = false, refreshTimer = null, heroMood = '', lastPayout = null;
+  let data = S.freshData(), activeHost = '', refreshTimer = null, heroMood = '', lastPayout = null;
+  let shareViewing = null;
   let earnedRolling = false, earnedRollTimer = null, flyerAnim = null;
   const money = (value) => { const c = data.settings.currency; return C.format(value, c.baseCode, c.displayCode); };
   const plusMoney = (value) => { const c = data.settings.currency; return C.plusLabel(value, c.baseCode, c.displayCode); };
@@ -13,13 +14,13 @@
   const timeValue = (minutes) => E.fmtTime(Number(minutes) || 0);
   function parseTime(value, fallback) { const match = /^(\d{2}):(\d{2})$/.exec(value || ''); return match ? Number(match[1]) * 60 + Number(match[2]) : fallback; }
   function go(name) {
-    if (document.documentElement.classList.contains('embed') && name !== 'Settings') {
+    if (document.documentElement.classList.contains('embed') && name !== 'Settings' && name !== 'Share') {
       try { window.parent.postMessage({ type: 'QJ_CLOSE_SETTINGS' }, '*'); } catch (e) {}
       return;
     }
     document.querySelectorAll('.view').forEach((view) => view.classList.remove('show'));
     $('view' + name).classList.add('show');
-    if (name === 'Share') { shareIncludesAmount = false; $('shareAmount').checked = false; drawShare(); }
+    if (name === 'Share') { $('shareAmount').checked = data.settings.share.includeAmount === true; drawShare(); renderArchive(); }
     if (name === 'Settings') { fillSettings(); refreshPermissionUI(); }
   }
   async function saveSettings() {
@@ -59,7 +60,7 @@
   }
   async function persistOnboarding(step) {
     data.settings = S.normalizeSettings(data.settings);
-    data.meta = { schemaVersion: 5, onboardingCompleted: false, onboardingStep: Math.min(2, Math.max(0, Number(step) || 0)) };
+    data.meta = { schemaVersion: 6, onboardingCompleted: false, onboardingStep: Math.min(2, Math.max(0, Number(step) || 0)), widgetPrompted: data.meta.widgetPrompted === true };
     await chrome.storage.local.set({ meta: data.meta, settings: data.settings });
   }
   function setupOnboarding() {
@@ -91,13 +92,15 @@
     document.querySelectorAll('[data-onboard-back]').forEach((button) => {
       button.onclick = async () => { const step = Number(button.dataset.onboardBack); await persistOnboarding(step); showOnboardingStep(step); };
     });
-    async function finish(enableWidget) {
-      data.settings.widget.enabled = false;
+    async function finish(requestHost) {
+      data.settings.widget.enabled = true;
       data.settings = S.normalizeSettings(data.settings);
-      data.meta = { schemaVersion: 5, onboardingCompleted: true, onboardingStep: 0 };
+      data.meta = { schemaVersion: 6, onboardingCompleted: true, onboardingStep: 0, widgetPrompted: !!requestHost };
       await chrome.storage.local.set({ meta: data.meta, settings: data.settings });
       $('onboarding').hidden = true; fillSettings(); refreshHome();
-      if (enableWidget && await requestPermission()) { data.settings.widget.enabled = true; await saveSettings(); fillSettings(); }
+      if (requestHost) await requestPermission();
+      chrome.runtime.sendMessage({ type: 'QJ_REFRESH_REGISTRATION' }).catch(() => {});
+      fillSettings(); refreshPermissionUI();
     }
     $('grantOnboarding').onclick = () => finish(true);
     $('skipOnboarding').onclick = () => finish(false);
@@ -210,7 +213,7 @@
   async function refreshPermissionUI() {
     const granted = await hasPermission();
     $('permissionTitle').textContent = granted ? '网页显示权限已开启' : '尚未授权网页显示';
-    $('permissionText').textContent = granted ? '仓鼠只绘制自己的悬浮界面，不读取、记录或上传网页内容。' : '弹窗仍可完整使用。只有你主动开启后，仓鼠才会出现在网页角落。';
+    $('permissionText').textContent = granted ? '仓鼠只绘制自己的悬浮界面，不读取、记录或上传网页内容。' : '网页模式默认开启。点一次授权后，仓鼠会出现在网页角落。';
     $('permissionAction').textContent = granted ? '撤销网站访问' : '启用网页仓鼠';
     $('pauseHost').hidden = !granted || !activeHost;
     if (activeHost) $('pauseHost').textContent = data.settings.widget.pausedHosts.includes(activeHost) ? '恢复当前网站' : '暂停当前网站';
@@ -235,6 +238,7 @@
     $('holidayName').textContent = holiday.name; $('holidayCountdown').textContent = holiday.text; $('weekendCountdown').textContent = weekend.text;
     $('heroHamster').style.setProperty('--cheek', (1 + state.progress * 0.23).toFixed(3));
     $('quote').textContent = E.quoteOfDay(now);
+    updateShareNudge(state);
     handlePayout(state);
   }
   function handlePayout(state) {
@@ -344,54 +348,121 @@
       setEarnedDisplay(state.earned, false);
     }, (reduceMotion() ? 0 : motion.ROLL_AT) + motion.SETTLE);
   }
+  function remainLabel(state) {
+    if (state.phase === 'after') return '已收工';
+    if (state.phase === 'off') return '今日休息';
+    if (state.phase === 'before') return '尚未开工';
+    return '距下班 ' + E.fmtDuration(state.remainSec);
+  }
+  function heroLine(state, showAmount, template) {
+    if (state.phase === 'off') return '今日休息，仓鼠不上班';
+    if (state.phase === 'after') return showAmount ? '今天已经稳稳装进口袋' : '今天收工，进账到位';
+    if (template === 'slack') return showAmount ? '摸鱼时金币也没停' : '工位电量还在涨';
+    if (template === 'minimal') return showAmount ? '今日已到账' : '看得见的进度';
+    return showAmount ? '今天已经稳稳装进口袋' : '今天已经稳稳钱进';
+  }
+  function liveShareSnapshot() {
+    const now = new Date();
+    const state = E.getState(now, data.settings);
+    const showAmount = data.settings.share.includeAmount === true;
+    const template = data.settings.share.template || 'strive';
+    const pct = Math.round(state.progress * 100);
+    return {
+      dateKey: E.dateKey(now),
+      dateLabel: (now.getMonth() + 1) + '月' + now.getDate() + '日',
+      template,
+      showAmount,
+      progress: state.phase === 'off' ? 0 : state.progress,
+      earnedText: money(state.earned),
+      percentText: pct + '%',
+      payoutLabel: state.payoutLabel,
+      remainLabel: remainLabel(state),
+      quote: E.quoteOfDay(now),
+      phase: state.phase,
+      phaseText: state.phaseText,
+      heroLine: heroLine(state, showAmount, template)
+    };
+  }
+  function updateShareNudge(state) {
+    const box = $('shareNudge');
+    if (!box) return;
+    const key = E.dateKey(new Date());
+    const show = !document.documentElement.classList.contains('embed') && state && state.configured && state.phase === 'after' && data.settings.share.lastSharePromptKey !== key;
+    box.hidden = !show;
+  }
   function shareText() {
-    const state = E.getState(new Date(), data.settings);
-    const pieces = ['摸鱼可以，进账不停', '我的带薪仓鼠今天已经钱进 ' + Math.round(state.progress * 100) + '%'];
-    if (shareIncludesAmount) pieces.push('今日已到账 ' + money(state.earned));
-    pieces.push(state.payoutLabel + '，每次到账都在稳稳累积');
-    return pieces.join('，') + '。\n前进 MoneyUp，向钱，向上！';
+    return window.QJShare ? QJShare.copyFor(shareViewing || liveShareSnapshot()) : '';
   }
   async function drawShare() {
-    const canvas = $('shareCanvas'), ctx = canvas.getContext('2d'), now = new Date(), state = E.getState(now, data.settings), holiday = Cal.nextHoliday(now, data.settings.calendar.region);
-    ctx.fillStyle = '#ededed'; ctx.fillRect(0, 0, 1080, 1440);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(40, 40, 1000, 1360);
-    ctx.fillStyle = '#111827'; ctx.font = '700 54px -apple-system, BlinkMacSystemFont, PingFang SC, sans-serif'; ctx.fillText('前进 MoneyUp', 80, 112);
-    ctx.fillStyle = '#ecfdf5'; rounded(ctx, 225, 66, 190, 54, 12, '#ecfdf5'); ctx.fillStyle = '#059669'; ctx.font = '600 25px sans-serif'; ctx.fillText('向钱，向上', 260, 102);
-    ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '500 27px sans-serif'; ctx.fillText((now.getMonth() + 1) + '月' + now.getDate() + '日 · 今日战报', 1000, 103); ctx.textAlign = 'left';
-    const hamster = await hamsterImage('work'); ctx.drawImage(hamster, 310, 150, 460, 430);
-    ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '500 27px sans-serif'; ctx.fillText(state.phaseText, 540, 590);
-    ctx.fillStyle = '#07c160'; ctx.font = '700 112px -apple-system, BlinkMacSystemFont, PingFang SC, sans-serif';
-    ctx.fillText(shareIncludesAmount ? money(state.earned) : Math.round(state.progress * 100) + '%', 540, 720);
-    ctx.fillStyle = '#111827'; ctx.font = '600 34px sans-serif'; ctx.fillText(shareIncludesAmount ? '今天已经稳稳装进口袋' : '今天已经稳稳钱进', 540, 770);
-    rounded(ctx, 100, 825, 880, 20, 10, '#f3f4f6'); rounded(ctx, 100, 825, 880 * state.progress, 20, 10, '#07c160');
-    ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '600 28px sans-serif'; ctx.fillText('今日进度', 100, 905); ctx.textAlign = 'right'; ctx.fillText('距下班 ' + E.fmtDuration(state.remainSec), 980, 905); ctx.textAlign = 'left';
-    rounded(ctx, 100, 950, 420, 180, 18, '#fffbeb'); rounded(ctx, 560, 950, 420, 180, 18, '#ecfdf5');
-    ctx.fillStyle = '#d97706'; ctx.font = '600 28px sans-serif'; ctx.fillText('时间明码标价', 140, 1005); ctx.fillStyle = '#111827'; ctx.font = '700 41px sans-serif';
-    ctx.fillText(state.payoutLabel, 140, 1070);
-    ctx.fillStyle = '#047857'; ctx.font = '600 28px sans-serif'; ctx.fillText('向上有迹可循', 600, 1005); ctx.fillStyle = '#111827'; ctx.font = '700 39px sans-serif';
-    ctx.fillText('一点点 Up', 600, 1065); ctx.font = '500 24px sans-serif'; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillText('凑成想要的生活', 600, 1105);
-    ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '500 28px sans-serif'; ctx.fillText('“' + E.quoteOfDay(now) + '”', 540, 1215);
-    ctx.fillStyle = '#111827'; ctx.font = '700 32px sans-serif'; ctx.fillText('前进 MoneyUp', 540, 1320); ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '500 23px sans-serif'; ctx.fillText('向钱，向上', 540, 1360); ctx.textAlign = 'left';
-    $('shareFallback').value = shareText();
-  }
-  function rounded(ctx, x, y, width, height, radius, fill) {
-    ctx.beginPath(); ctx.moveTo(x + radius, y); ctx.arcTo(x + width, y, x + width, y + height, radius); ctx.arcTo(x + width, y + height, x, y + height, radius); ctx.arcTo(x, y + height, x, y, radius); ctx.arcTo(x, y, x + width, y, radius); ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+    const canvas = $('shareCanvas'), ctx = canvas.getContext('2d');
+    const snap = shareViewing || liveShareSnapshot();
+    $('shareFallback').value = window.QJShare ? QJShare.copyFor(snap) : '';
+    document.querySelectorAll('#shareTemplates button').forEach((button) => button.classList.toggle('on', button.dataset.template === snap.template));
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, 1080, 1440);
+    const mood = window.QJShare ? QJShare.hamsterMood(snap) : 'work';
+    let hamster = null;
+    if (snap.template !== 'minimal') {
+      try { hamster = await hamsterImage(mood); } catch (e) {}
+    }
+    if (window.QJShare) QJShare.draw(ctx, snap, hamster);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.textAlign = 'left';
   }
   async function hamsterImage(mood) {
     const source = H.svg(mood); const blob = new Blob([source], { type: 'image/svg+xml' }); const url = URL.createObjectURL(blob);
     try { const image = new Image(); await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = url; }); return image; } finally { setTimeout(() => URL.revokeObjectURL(url), 500); }
   }
+  async function renderArchive() {
+    const list = $('shareArchiveList');
+    if (!list || !window.QJShare) return;
+    const rows = await QJShare.loadArchive();
+    if (!rows.length) { list.innerHTML = '<div class="empty">还没有归档。下载或复制后会出现在这里。</div>'; return; }
+    const names = { strive: '上进', slack: '摸鱼', minimal: '极简' };
+    list.innerHTML = rows.map((row) => '<button type="button" data-id="' + row.id + '"><b>' + (row.dateLabel || row.dateKey) + ' · ' + (names[row.template] || '上进') + '</b><span>' + (row.showAmount ? '含金额 · ' : '') + (row.percentText || '') + (row.remainLabel ? ' · ' + row.remainLabel : '') + '</span></button>').join('');
+    list.querySelectorAll('button').forEach((button) => {
+      button.onclick = () => {
+        const item = rows.find((row) => String(row.id) === button.dataset.id);
+        if (!item) return;
+        shareViewing = item;
+        $('shareAmount').checked = !!item.showAmount;
+        drawShare();
+        $('shareStatus').textContent = '正在回看 ' + (item.dateLabel || item.dateKey);
+      };
+    });
+  }
   function bindShare() {
-    $('shareAmount').onchange = () => { shareIncludesAmount = $('shareAmount').checked; drawShare(); };
+    const box = $('shareTemplates');
+    box.innerHTML = QJShare.TEMPLATES.map((item) => '<button type="button" data-template="' + item.id + '"><b>' + item.name + '</b><small>' + item.hint + '</small></button>').join('');
+    box.querySelectorAll('button').forEach((button) => {
+      button.onclick = async () => {
+        shareViewing = null;
+        data.settings.share.template = button.dataset.template;
+        await saveSettings();
+        drawShare();
+      };
+    });
+    $('shareAmount').onchange = async () => {
+      shareViewing = null;
+      data.settings.share.includeAmount = $('shareAmount').checked;
+      await saveSettings();
+      drawShare();
+    };
     $('downloadShare').onclick = () => {
+      shareViewing = null;
       drawShare().then(() => $('shareCanvas').toBlob((blob) => {
-        const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = '前进-今日战报-' + E.dateKey(new Date()) + '.png'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); $('shareStatus').textContent = '战报已开始下载';
+        const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = '前进-今日前进-' + E.dateKey(new Date()) + '.png'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        QJShare.remember(liveShareSnapshot()).then(renderArchive);
+        $('shareStatus').textContent = '卡片已开始下载';
       }, 'image/png'));
     };
     $('copyShare').onclick = async () => {
+      shareViewing = null;
       const text = shareText(); $('shareFallback').value = text;
-      try { await navigator.clipboard.writeText(text); $('shareStatus').textContent = '文案已复制'; }
+      try { await navigator.clipboard.writeText(text); $('shareStatus').textContent = '文案已复制，可直接发朋友圈或同事群'; }
       catch (e) { $('shareFallback').focus(); $('shareFallback').select(); document.execCommand('copy'); $('shareStatus').textContent = '已选中文案，可手动复制'; }
+      await QJShare.remember(liveShareSnapshot());
+      renderArchive();
     };
   }
   function bindHome() {
@@ -404,9 +475,23 @@
       if (data.settings.soundMode === 'all') QJAudio.coin();
     };
     $('openSettings').onclick = () => go('Settings');
-    $('openShare').onclick = () => go('Share');
-    $('touchWidget').onclick = () => go('Settings');
-    document.querySelectorAll('[data-back]').forEach((button) => { button.onclick = () => go(button.dataset.back); });
+    $('openShare').onclick = () => { shareViewing = null; go('Share'); };
+    $('shareNudgeGo').onclick = async () => {
+      shareViewing = null;
+      data.settings.share.lastSharePromptKey = E.dateKey(new Date());
+      await saveSettings();
+      go('Share');
+    };
+    $('shareNudgeDismiss').onclick = async () => {
+      data.settings.share.lastSharePromptKey = E.dateKey(new Date());
+      await saveSettings();
+      $('shareNudge').hidden = true;
+    };
+    $('touchWidget').onclick = async () => {
+      if (!(await hasPermission())) await requestPermission();
+      go('Settings');
+    };
+    document.querySelectorAll('[data-back]').forEach((button) => { button.onclick = () => { shareViewing = null; go(button.dataset.back); }; });
     QJAudio.unlock();
   }
   chrome.storage.onChanged.addListener((changes) => {
@@ -425,6 +510,19 @@
     if (embedded) document.documentElement.classList.add('embed');
     $('onboarding').hidden = embedded || data.meta.onboardingCompleted;
     if (!embedded && !data.meta.onboardingCompleted) showOnboardingStep(data.meta.onboardingStep || 0);
+    if (!embedded && data.meta.onboardingCompleted && data.settings.widget.enabled && !data.meta.widgetPrompted) {
+      const granted = await hasPermission();
+      if (!granted) {
+        data.meta.widgetPrompted = true;
+        await chrome.storage.local.set({ meta: data.meta });
+        await requestPermission();
+        chrome.runtime.sendMessage({ type: 'QJ_REFRESH_REGISTRATION' }).catch(() => {});
+        refreshPermissionUI();
+      } else {
+        data.meta.widgetPrompted = true;
+        await chrome.storage.local.set({ meta: data.meta });
+      }
+    }
     const previewView = params.get('view');
     if (['Home', 'Settings', 'Share'].includes(previewView)) go(previewView);
     if (params.get('demo') === 'payout') {
