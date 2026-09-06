@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Money Go 图形标</title><desc id="desc">金币从左下方沿路径向右上方前进</desc>
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#07C160"/>
+  <path d="M164 337c48-4 69-35 94-70 31-44 65-69 121-69" fill="none" stroke="#fff" stroke-width="42" stroke-linecap="round"/>
+  <path d="M329 142l61 56-61 56" fill="none" stroke="#fff" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="126" cy="341" r="52" fill="#FFC300"/>
+  <path d="M102 341h48M126 317v48" stroke="#9A6D00" stroke-width="12" stroke-linecap="round"/>
+</svg>

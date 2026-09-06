@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>前进 MoneyUp</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main id="app" aria-live="polite">
+    <section id="viewHome" class="view show">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <img src="../assets/brand/money-go-mark.svg" alt="">
+          <div>
+            <div class="brand">前进 <span>MoneyUp</span></div>
+            <div class="slogan">向钱，向上</div>
+          </div>
+        </div>
+        <button class="icon-button" id="openSettings" aria-label="打开设置">⚙</button>
+      </header>
+      <div class="home">
+        <section class="earnings-panel">
+          <div class="hero-stage">
+            <div class="state-chip" id="stateChip">等待设置</div>
+            <button id="heroHamster" class="hero-hamster" aria-label="摸摸带薪仓鼠"></button>
+          </div>
+          <div class="cheer" id="cheer">每一秒，都在向上进账</div>
+          <div class="earned-label">今日已到账</div>
+          <div class="earned-row">
+            <div class="earned" id="earned" aria-live="polite">¥0.00</div>
+          </div>
+          <div class="rate" id="rate">完成设置后开始前进</div>
+          <div class="progress">
+            <i id="progressFill"></i>
+          </div>
+          <div class="progress-meta">
+            <span id="progressText">今日 0%</span>
+            <span id="remainText">--</span>
+          </div>
+        </section>
+        <div class="anticipation">
+          <div>
+            <span>最近假期</span>
+            <b id="holidayName">正在寻找下一次期待</b>
+            <small id="holidayCountdown">--</small>
+          </div>
+          <div>
+            <span>周末休息</span>
+            <b>最近的周六日</b>
+            <small id="weekendCountdown">--</small>
+          </div>
+        </div>
+        <div class="home-actions">
+          <button id="openShare"><span>↗</span>今日战报</button>
+          <button id="touchWidget"><span>◉</span>网页仓鼠</button>
+        </div>
+        <blockquote id="quote">时间明码标价，向上有迹可循</blockquote>
+      </div>
+      <div id="payoutFlyer" class="payout-flyer" role="status" aria-live="polite"></div>
+    </section>
+    <section id="viewSettings" class="view">
+      <header class="subbar">
+        <button data-back="Home">‹ 返回</button>
+        <b>设置</b>
+        <span></span>
+      </header>
+      <div class="settings-scroll">
+        <section class="setting-group">
+          <h2>工资与工时</h2>
+          <label class="setting-field">
+            <span class="field-label">月工资<small>税前或到手均可</small></span>
+            <span class="salary-control">
+              <input id="salaryInput" type="number" min="0" step="100" placeholder="请输入">
+              <select id="baseCurrency" class="currency-select" aria-label="工资币种"></select>
+            </span>
+          </label>
+          <div class="two-inputs">
+            <label>上班<input id="startTime" type="time"></label>
+            <label>下班<input id="endTime" type="time"></label>
+          </div>
+          <label class="setting-row">
+            <span class="field-label">月计薪天数<small>现行折算口径</small></span>
+            <input id="billingDays" class="value-input" type="number" min="1" max="31" step="0.25">
+          </label>
+          <div class="stack-row">
+            <span class="field-label">到账时间<small>决定工资变动频率</small></span>
+            <div class="segmented three" id="payoutPicker">
+              <button type="button" data-value="breath">心跳到账<small>约 8 秒</small></button>
+              <button type="button" data-value="thirty">30 分钟<small>稳稳到账</small></button>
+              <button type="button" data-value="custom">自定义<small>时分秒</small></button>
+            </div>
+            <div class="payout-fields" id="payoutFields">
+              <label>小时<input id="payoutHours" type="number" min="0" max="24" step="1"></label>
+              <label>分钟<input id="payoutMinutes" type="number" min="0" max="59" step="1"></label>
+              <label>秒<input id="payoutSeconds" type="number" min="0" max="59" step="1"></label>
+            </div>
+            <p class="payout-hint" id="payoutHint"></p>
+          </div>
+          <div class="stack-row">
+            <span class="field-label">重复工作日</span>
+            <div id="weekdayPicker" class="weekday-picker"></div>
+          </div>
+        </section>
+        <section class="setting-group">
+          <h2>地区与显示币种</h2>
+          <label class="setting-row">
+            <span class="field-label">假期地区<small>按语言和时区自动识别</small></span>
+            <select id="regionSelect"></select>
+          </label>
+          <label class="setting-row">
+            <span class="field-label">显示币种<small>可选高面额换算</small></span>
+            <select id="displayCurrency"></select>
+          </label>
+          <div id="currencyPreview" class="currency-preview"></div>
+        </section>
+        <section class="setting-group">
+          <h2>隐私与陪伴</h2>
+          <div class="stack-row">
+            <span class="field-label">网页显示<small>仓鼠卡片里如何展示收入</small></span>
+            <div class="segmented four" id="privacyPicker">
+              <button type="button" data-value="pet">纯宠物<small>最安心</small></button>
+              <button type="button" data-value="percent">进度<small>不露金额</small></button>
+              <button type="button" data-value="rough">取整<small>模糊金额</small></button>
+              <button type="button" data-value="exact">精确<small>直接显示</small></button>
+            </div>
+          </div>
+          <div class="stack-row">
+            <span class="field-label">声音</span>
+            <div class="segmented three" id="soundPicker">
+              <button type="button" data-value="mute">静音</button>
+              <button type="button" data-value="soft">金币到账</button>
+              <button type="button" data-value="all">金币+互动</button>
+            </div>
+          </div>
+          <p class="fineprint">仅在到账周期不少于 1 分钟时播放金币掉落声；更快的节奏保持安静。</p>
+          <label class="switch-row">
+            <span class="field-label">网页仓鼠总开关</span>
+            <input id="widgetEnabled" type="checkbox">
+            <i></i>
+          </label>
+          <label class="setting-row">
+            <span class="field-label">点击后自动收起<small>悬停移出后立即收起</small></span>
+            <input id="autoHide" class="value-input" type="number" min="1" max="60">
+          </label>
+          <div class="permission-box">
+            <b id="permissionTitle">尚未授权网页显示</b>
+            <p id="permissionText">弹窗仍可完整使用。只有你主动开启后，仓鼠才会出现在网页角落。</p>
+            <button id="permissionAction">启用网页仓鼠</button>
+            <button id="pauseHost" class="ghost">暂停当前网站</button>
+          </div>
+        </section>
+        <section class="setting-group">
+          <h2>说明</h2>
+          <p class="fineprint">工资只存本机浏览器，无账号、无广告、无分析 SDK、无网络请求。老板键：Ctrl/⌘ + Shift + H。</p>
+          <button id="resetAll" class="danger-ghost">恢复默认设置</button>
+        </section>
+      </div>
+    </section>
+    <section id="viewShare" class="view">
+      <header class="subbar">
+        <button data-back="Home">‹ 返回</button>
+        <b>今日钱进战报</b>
+        <span></span>
+      </header>
+      <div class="share-wrap">
+        <canvas id="shareCanvas" width="1080" height="1440" aria-label="今日钱进战报预览"></canvas>
+        <label class="share-toggle">
+          <input id="shareAmount" type="checkbox">主动在战报中展示今日金额
+        </label>
+        <div class="share-actions">
+          <button id="downloadShare" class="primary">下载 PNG</button>
+          <button id="copyShare">复制文案</button>
+        </div>
+        <textarea id="shareFallback" readonly aria-label="可手动复制的战报文案"></textarea>
+        <div id="shareStatus" class="status" role="status"></div>
+      </div>
+    </section>
+    <section id="onboarding" class="onboarding" hidden>
+      <div class="onboard-progress">
+        <i></i><i></i><i></i>
+      </div>
+      <article class="onboard-step show" data-step="0">
+        <div id="onboardHamster" class="onboard-hamster"></div>
+        <span class="step-tag">1 / 3</span>
+        <h1>先告诉仓鼠<br>今天怎么帮你攒钱</h1>
+        <p>工资只保存在这台浏览器。可以填写税前，也可以填写到手。</p>
+        <label class="onboard-field">
+          <span class="onboard-field-label">月工资（<b id="salaryCurrencyHint">CNY</b>）</span>
+          <input id="onboardSalary" type="number" min="0" step="100" placeholder="例如 10000" autofocus>
+        </label>
+        <div id="salaryError" class="error"></div>
+        <button id="onboardNext1" class="primary">保存并继续</button>
+      </article>
+      <article class="onboard-step" data-step="1">
+        <span class="step-tag">2 / 3</span>
+        <h1>你的上班节奏</h1>
+        <p>设置每天的工作时间，工资会按你选择的到账节奏分笔显示。</p>
+        <div class="preset-grid">
+          <button data-preset="540,1080">朝九晚六<small>09:00–18:00</small></button>
+          <button data-preset="570,1110">九点半下班族<small>09:30–18:30</small></button>
+          <button data-preset="600,1140">十点上班<small>10:00–19:00</small></button>
+        </div>
+        <div class="two-inputs">
+          <label>上班<input id="onboardStart" type="time"></label>
+          <label>下班<input id="onboardEnd" type="time"></label>
+        </div>
+        <div id="onboardWeekdays" class="weekday-picker large"></div>
+        <button id="onboardNext2" class="primary">下一步</button>
+        <button class="back-link" data-onboard-back="0">上一步</button>
+      </article>
+      <article class="onboard-step" data-step="2">
+        <span class="step-tag">3 / 3</span>
+        <div class="permission-illustration">◉ <span>仅显示仓鼠</span></div>
+        <h1>要让仓鼠陪你<br>出现在网页角落吗？</h1>
+        <p>这是可选功能。开启时 Chrome 会询问网站访问权限；插件不会读取、记录或上传网页内容。</p>
+        <button id="grantOnboarding" class="primary">开启网页仓鼠</button>
+        <button id="skipOnboarding" class="secondary">暂时只用弹窗</button>
+        <button class="back-link" data-onboard-back="1">上一步</button>
+      </article>
+    </section>
+  </main>
+  <script src="currency.js"></script>
+  <script src="calendar.js"></script>
+  <script src="storage.js"></script>
+  <script src="engine.js"></script>
+  <script src="hamster.js"></script>
+  <script src="audio.js"></script>
+  <script src="payout-motion.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

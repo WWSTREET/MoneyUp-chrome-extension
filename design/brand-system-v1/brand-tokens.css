@@ -1,0 +1,24 @@
+:root {
+  --mw-brand-go: #07c160;
+  --mw-brand-go-pressed: #059a4c;
+  --mw-brand-way: #576b95;
+  --mw-brand-horizon: #10aeff;
+  --mw-coin: #ffc300;
+  --mw-warn: #fa5151;
+  --mw-orange: #fa9d3b;
+  --mw-bg-0: #ededed;
+  --mw-bg-1: #f7f7f7;
+  --mw-bg-2: #ffffff;
+  --mw-fg-0: rgba(0, 0, 0, .9);
+  --mw-fg-1: rgba(0, 0, 0, .55);
+  --mw-fg-2: rgba(0, 0, 0, .3);
+  --mw-separator: rgba(0, 0, 0, .1);
+  --mw-radius-control: 8px;
+  --mw-radius-card: 12px;
+  --mw-space-1: 4px;
+  --mw-space-2: 8px;
+  --mw-space-3: 12px;
+  --mw-space-4: 16px;
+  --mw-space-6: 24px;
+  --mw-space-8: 32px;
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Money Way 图形标</title><desc id="desc">一条向右上方延伸的道路</desc>
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#576B95"/>
+  <path d="M128 386c22-106 82-168 197-222" fill="none" stroke="#fff" stroke-width="36" stroke-linecap="round"/>
+  <path d="M220 402c-2-88 27-157 105-238" fill="none" stroke="rgba(255,255,255,.72)" stroke-width="24" stroke-linecap="round"/>
+  <path d="M299 146l80-10-11 80" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="124" cy="386" r="34" fill="#10AEFF"/>
+</svg>

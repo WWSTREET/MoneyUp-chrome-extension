@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="title">
+  <title id="title">Money Go 与 Money Way 品牌 VI 总览</title>
+  <rect width="1440" height="900" fill="#F7F7F7"/>
+  <text x="80" y="88" font-family="PingFang SC,Arial,sans-serif" font-size="38" font-weight="650" fill="#191919">Money Go / Money Way</text>
+  <text x="80" y="126" font-family="PingFang SC,Arial,sans-serif" font-size="20" fill="rgba(0,0,0,.55)">向前的路径 · 可积累的节点 · WeUI 信息层级</text>
+  <rect x="80" y="176" width="620" height="250" rx="24" fill="#fff"/>
+  <rect x="112" y="208" width="186" height="186" rx="42" fill="#07C160"/>
+  <path d="M168 332c34-3 48-25 65-49 22-31 46-49 85-49" fill="none" stroke="#fff" stroke-width="23" stroke-linecap="round"/>
+  <path d="m284 202 41 32-41 36" fill="none" stroke="#fff" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="149" cy="335" r="29" fill="#FFC300"/><path d="M136 335h26m-13-13v26" stroke="#9A6D00" stroke-width="7" stroke-linecap="round"/>
+  <text x="338" y="282" font-family="PingFang SC,Arial,sans-serif" font-size="52" font-weight="650" fill="#191919">钱进</text>
+  <text x="338" y="334" font-family="Helvetica Neue,Arial,sans-serif" font-size="34" font-weight="600" fill="rgba(0,0,0,.55)">Money Go</text>
+  <text x="338" y="376" font-family="PingFang SC,Arial,sans-serif" font-size="18" fill="#07C160">每次到账，都离想要的生活近一点</text>
+  <rect x="740" y="176" width="620" height="250" rx="24" fill="#fff"/>
+  <rect x="772" y="208" width="186" height="186" rx="42" fill="#576B95"/>
+  <path d="M815 352c9-42 33-68 79-90" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+  <path d="M852 359c-1-36 11-64 42-97" fill="none" stroke="rgba(255,255,255,.72)" stroke-width="10" stroke-linecap="round"/>
+  <path d="m883 255 33-5-5 34" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="813" cy="352" r="14" fill="#10AEFF"/>
+  <text x="998" y="282" font-family="PingFang SC,Arial,sans-serif" font-size="52" font-weight="650" fill="#191919">前路</text>
+  <text x="998" y="334" font-family="Helvetica Neue,Arial,sans-serif" font-size="34" font-weight="600" fill="rgba(0,0,0,.55)">Money Way</text>
+  <text x="998" y="376" font-family="PingFang SC,Arial,sans-serif" font-size="18" fill="#576B95">看见前路，保留更多选择</text>
+  <text x="80" y="486" font-family="PingFang SC,Arial,sans-serif" font-size="26" font-weight="600" fill="#191919">品牌色</text>
+  <g font-family="SF Pro Display,Arial,sans-serif" font-size="16" fill="#191919">
+    <rect x="80" y="518" width="176" height="102" rx="16" fill="#07C160"/><text x="98" y="652">Go Green  #07C160</text>
+    <rect x="286" y="518" width="176" height="102" rx="16" fill="#FFC300"/><text x="304" y="652">Coin Gold  #FFC300</text>
+    <rect x="492" y="518" width="176" height="102" rx="16" fill="#576B95"/><text x="510" y="652">Way Indigo  #576B95</text>
+    <rect x="698" y="518" width="176" height="102" rx="16" fill="#10AEFF"/><text x="716" y="652">Horizon  #10AEFF</text>
+    <rect x="904" y="518" width="176" height="102" rx="16" fill="#191919"/><text x="922" y="652">Ink  #191919</text>
+    <rect x="1110" y="518" width="176" height="102" rx="16" fill="#EDEDED" stroke="rgba(0,0,0,.1)"/><text x="1128" y="652">Background  #EDEDED</text>
+  </g>
+  <text x="80" y="730" font-family="PingFang SC,Arial,sans-serif" font-size="26" font-weight="600" fill="#191919">图标语言</text>
+  <g transform="translate(80 756)" fill="none" stroke="#191919" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 18 15 8l12 10v11h-7v-8h-10v8H3z"/><circle cx="76" cy="19" r="12"/><path d="m71 13 5 6 5-6m-7 6h7m-7 5h7m-4-5v9"/><circle cx="137" cy="19" r="12"/><circle cx="137" cy="19" r="5"/><path d="m141 15 8-8m-3 0h3v3"/><rect x="182" y="9" width="26" height="23" rx="3"/><path d="M188 6v6m14-6v6m-20 3h26"/><circle cx="260" cy="19" r="4"/><path d="M260 5v5m0 18v5m-14-14h5m18 0h5m-24-10 4 4m12 12 4 4m0-20-4 4m-12 12-4 4"/><circle cx="327" cy="9" r="4"/><circle cx="310" cy="19" r="4"/><circle cx="327" cy="29" r="4"/><path d="m314 17 9-6m-9 10 9 6"/>
+  </g>
+  <text x="80" y="858" font-family="PingFang SC,Arial,sans-serif" font-size="17" fill="rgba(0,0,0,.55)">24 px 网格 · 2 px 圆角线 · 默认 currentColor · 品牌图形不复制微信气泡</text>
+</svg>

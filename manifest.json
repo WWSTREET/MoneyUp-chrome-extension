@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "default_locale": "zh_CN",
+  "name": "__MSG_extensionName__",
+  "short_name": "__MSG_extensionShortName__",
+  "version": "0.6.1",
+  "description": "__MSG_extensionDescription__",
+  "permissions": ["storage", "scripting"],
+  "optional_host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "__MSG_extensionName__",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/*",
+        "assets/brand/*",
+        "assets/sounds/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "commands": {
+    "boss-key": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+H",
+        "mac": "Command+Shift+H"
+      },
+      "description": "老板键：将网页仓鼠切换为专注时钟"
+    }
+  }
+}

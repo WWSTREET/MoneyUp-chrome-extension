@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 200" role="img" aria-labelledby="title">
+  <title id="title">前路 Money Way 横版 Logo</title>
+  <rect x="16" y="16" width="168" height="168" rx="38" fill="#576B95"/>
+  <path d="M55 145c8-38 30-61 72-81" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round"/>
+  <path d="M88 151c-1-32 10-57 39-87" fill="none" stroke="rgba(255,255,255,.72)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M117 58l29-4-4 29" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="53" cy="145" r="12" fill="#10AEFF"/>
+  <text x="222" y="94" fill="#191919" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="54" font-weight="650">前路</text>
+  <text x="222" y="148" fill="rgba(0,0,0,.55)" font-family="SF Pro Display,Helvetica Neue,Arial,sans-serif" font-size="34" font-weight="600" letter-spacing="1">Money Way</text>
+</svg>
